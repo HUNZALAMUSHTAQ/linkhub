@@ -9,10 +9,25 @@ const createUser = {
     role: Joi.string().required().valid('user', 'admin'),
   }),
 };
+const updateUserLocation = {
+  body: Joi.object().keys({
+    longitude: Joi.number().required(),
+    latitude: Joi.number().required(),
+  }),
+};
+
+const getNearbyUsers = {
+  query: Joi.object().keys({
+    longitude: Joi.number().required(),
+    latitude: Joi.number().required(),
+    maxDistance: Joi.number().required(),
+  }),
+};
 
 const getUsers = {
   query: Joi.object().keys({
-    name: Joi.string(),
+    firstName: Joi.string(),
+    lastName: Joi.string(),
     role: Joi.string(),
     sortBy: Joi.string(),
     limit: Joi.number().integer(),
@@ -26,6 +41,11 @@ const getUser = {
   }),
 };
 
+const friendParams = {
+  params: Joi.object().keys({
+    friendId: Joi.string().custom(objectId),
+  }),
+};
 const updateUser = {
   params: Joi.object().keys({
     userId: Joi.required().custom(objectId),
@@ -39,6 +59,10 @@ const updateUser = {
       phoneNumber: Joi.string(),
       firstName: Joi.string(),
       lastName: Joi.string(),
+      location: Joi.object({
+        type: Joi.string().valid('Point'),
+        coordinates: Joi.array().items(Joi.number()).length(2)
+      })
     })
     .min(1),
 };
@@ -70,4 +94,7 @@ module.exports = {
   updateUser,
   deleteUser,
   updateUserFields,
+  friendParams,
+  updateUserLocation,
+  getNearbyUsers,
 };

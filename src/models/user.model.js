@@ -61,6 +61,25 @@ const userSchema = mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    profileImage: {
+      type: String,
+    },
+    location: {
+      type: {
+        type: String,
+        enum: ['Point'],
+        required: true,
+        default: 'Point',
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+        default: [0, 0],
+      },
+    },
+    educations: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Education' }],
+    experiences: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Experience' }],
+    friends: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
   },
   {
     timestamps: true,
@@ -90,6 +109,28 @@ userSchema.statics.isEmailTaken = async function (email, excludeUserId) {
 userSchema.methods.isPasswordMatch = async function (password) {
   const user = this;
   return bcrypt.compare(password, user.password);
+};
+userSchema.statics.searchUsersByName = async function (searchTerm, userId) {
+  const users = await this.find({
+    $or: [
+      { firstName: { $regex: searchTerm, $options: 'i' } },
+      { lastName: { $regex: searchTerm, $options: 'i' } }
+    ]
+  }).populate('friends', 'firstName lastName');
+
+  const user = await this.findById(userId).populate('friends', 'firstName lastName');
+  const userFriends = user.friends.map(friend => friend._id.toString());
+
+  const results = users.map(searchUser => {
+    const mutualFriends = searchUser.friends.filter(friend => userFriends.includes(friend._id.toString()));
+    return {
+      user: searchUser,
+      mutualFriends: mutualFriends.map(friend => ({ _id: friend._id, name: `${friend.firstName} ${friend.lastName}` })),
+      mutualFriendsCount: mutualFriends.length
+    };
+  });
+
+  return results;
 };
 
 userSchema.pre('save', async function (next) {

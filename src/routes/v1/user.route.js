@@ -3,19 +3,59 @@ const auth = require('../../middlewares/auth');
 const validate = require('../../middlewares/validate');
 const userValidation = require('../../validations/user.validation');
 const userController = require('../../controllers/user.controller');
+const educationValidation = require('../../validations/education.validation');
+const educationController = require('../../controllers/education.controller');
+const experienceValidation = require('../../validations/experience.validation');
+const experienceController = require('../../controllers/experience.controller');
 
 const router = express.Router();
 
+router
+  .route('/education')
+  .post(auth(), validate(educationValidation.createEducation), educationController.createEducation)
+  .get(auth(), educationController.getEducations);
+
+router
+  .route('/education/:educationId')
+  .get(auth(), validate(educationValidation.getEducation), educationController.getEducationById)
+  .put(auth(), validate(educationValidation.updateEducation), educationController.updateEducation)
+  .delete(auth(), validate(educationValidation.getEducation), educationController.deleteEducation);
+
+router
+  .route('/experience')
+  .post(auth(), validate(experienceValidation.createExperience), experienceController.createExperience)
+  .get(auth(), experienceController.getExperiences);
+
+router
+  .route('/experience/:experienceId')
+  .get(auth(), validate(experienceValidation.getExperience), experienceController.getExperienceById)
+  .put(auth(), validate(experienceValidation.updateExperience), experienceController.updateExperience)
+  .delete(auth(), validate(experienceValidation.getExperience), experienceController.deleteExperience);
+
+router.patch('/location', auth(), validate(userValidation.updateUserLocation), userController.updateUserLocation);
+
+router.post('/upload/profile', auth(), userController.uploadImage);
+router.patch('/me', auth(), userController.updateME);
+router.get('/recommendations/education', auth(),userController.getEducationMatches);
+router.get('/recommendations/experience', auth(),userController.getExperienceMatches);
+
+router.get('/all/friends', auth(), userController.getAllFriends);
+router.get('/all/friends/nearby', validate(userValidation.getNearbyUsers), auth(), userController.getNearbyUsers); // near by friends
+router.get('/search/friends', auth(), userController.searchUsers);
+router
+  .route('/friends/:friendId')
+  .post(auth(), validate(userValidation.friendParams), userController.addFriend)
+  .delete(auth(), validate(userValidation.friendParams), userController.removeFriend);
 
 router
   .route('/')
   .post(auth('manageUsers'), validate(userValidation.createUser), userController.createUser)
-  .get(auth('getUsers'), validate(userValidation.getUsers), userController.getUsers);
+  .get(auth(), validate(userValidation.getUsers), userController.getUsers);
 
 router
   .route('/:userId')
-  .get(auth('getUsers'), validate(userValidation.getUser), userController.getUser)
-  .patch(auth('manageUsers'), validate(userValidation.updateUser), userController.updateUser)
+  .get(auth(), validate(userValidation.getUser), userController.getUser)
+  .patch(auth(), validate(userValidation.updateUser), userController.updateUser)
   .delete(auth('manageUsers'), validate(userValidation.deleteUser), userController.deleteUser);
 
 module.exports = router;

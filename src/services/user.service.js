@@ -83,6 +83,17 @@ const updateUserById = async (userId, updateBody, patternType) => {
   }
 };
 
+const getNearbyUsers = async (longitude, latitude, maxDistance) => {
+  return User.find({
+    location: {
+      $geoWithin: {
+        $centerSphere: [[longitude, latitude], maxDistance / 3963.2] // maxDistance in miles
+      }
+    }
+  });
+};
+
+
 /**
  * Delete user by id
  * @param {ObjectId} userId
@@ -123,4 +134,5 @@ module.exports = {
   updateUserById,
   deleteUserById,
   updateUserByQuery,
+  getNearbyUsers
 };
